@@ -168,14 +168,15 @@ def calcular_custo_minimo(item_final, quantidade, receitas, precos):
 
     for material, qtd in materiais_necessarios.items():
         preco_unitario = 0.0
-        # Regra especial para minérios
-        if "Minério" in material:
-            # Garante que a estrutura de preços da mineradora exista
+        # 1. Tenta encontrar o preço exato do material na lista de preços achatada
+        if material in precos_min:
+            preco_unitario = precos_min[material]
+        # 2. Se não encontrou um preço específico e o item é um minério (ou carvão),
+        #    usa o preço genérico para "Qualquer Minério" como fallback.
+        elif "Minério" in material or material == "Carvão":
+            # Garante que a estrutura de preços da mineradora e o fallback existam
             if "mineradora" in precos and "min" in precos["mineradora"] and "Qualquer Minério" in precos["mineradora"]["min"]:
                 preco_unitario = precos["mineradora"]["min"]["Qualquer Minério"]
-        # Procura o preço nos outros itens
-        elif material in precos_min:
-            preco_unitario = precos_min[material]
 
         custo_total += float(qtd) * preco_unitario
 
