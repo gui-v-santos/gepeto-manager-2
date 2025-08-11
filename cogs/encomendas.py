@@ -156,6 +156,31 @@ def gerar_blocos_de_rateio(item_raiz, quantidade_desejada, receitas):
     return blocos
 
 
+def calcular_custo_minimo(item_final, quantidade, receitas, precos):
+    materiais_necessarios = calcular_materiais(item_final, quantidade, receitas)
+    custo_total = 0.0
+
+    precos_min = {}
+    if precos:
+        for categoria in precos.values():
+            if isinstance(categoria, dict) and 'min' in categoria and isinstance(categoria['min'], dict):
+                precos_min.update(categoria['min'])
+
+    for material, qtd in materiais_necessarios.items():
+        preco_unitario = 0.0
+        # Regra especial para minérios
+        if "Minério" in material:
+            # Garante que a estrutura de preços da mineradora exista
+            if "mineradora" in precos and "min" in precos["mineradora"] and "Qualquer Minério" in precos["mineradora"]["min"]:
+                preco_unitario = precos["mineradora"]["min"]["Qualquer Minério"]
+        # Procura o preço nos outros itens
+        elif material in precos_min:
+            preco_unitario = precos_min[material]
+
+        custo_total += float(qtd) * preco_unitario
+
+    return custo_total
+
 def dividir_em_blocos(texto, tamanho_max=1018):
     blocos = []
     bloco_atual = ""
@@ -269,19 +294,24 @@ class EncomendaCog(commands.Cog):
                 prazo = data.get('prazo')
                 preco_min_str = data.get('venda')
 
+                # CÁLCULOS
+                receitas = self.api_data.get('receitas_crafting', {})
+                precos = self.api_data.get('precos', {})
+                custo_materiais = calcular_custo_minimo(produto, quantidade, receitas, precos)
+                custo_materiais_str = f"R$ {custo_materiais:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
                 public_embed.add_field(name='Pombo', value=f'```{pombo}```', inline=False)
                 public_embed.add_field(name='Produto', value=f'```{produto}```', inline=False)
                 public_embed.add_field(name='Quantidade', value=f'```{quantidade}```', inline=False)
-                public_embed.add_field(name='Prazo', value=f'```{prazo}```', inline=False)
                 public_embed.add_field(name='Prazo', value=f'```{prazo if str(prazo).lower().endswith(("dia","dias")) else str(prazo) + (" Dia" if str(prazo).strip() == "1" else " Dias")}```', inline=False)
                 public_embed.add_field(name='Valor mínimo de venda', value=f'```{preco_min_str}```', inline=True)
+                public_embed.add_field(name='Custo Mínimo dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
                 public_embed.add_field(name='\u200B', value= '', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
                 # CÁLCULO DE MATERIAIS
-                receitas = self.api_data.get('receitas_crafting', {})
                 materiais_necessarios = calcular_materiais(produto, quantidade, receitas)
 
                 materiais_str = "\n".join(
