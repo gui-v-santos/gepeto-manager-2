@@ -1,6 +1,8 @@
 """
 Módulo para cálculos complexos de crafting e custos.
 """
+import math
+from collections import defaultdict
 
 def find_price(item_name, precos_data):
     """
@@ -79,3 +81,49 @@ def calcular_custo_craft(item_nome, quantidade, receitas, precos, memo=None):
     total_max = round(custo_unit_max * quantidade, 2)
 
     return total_min, total_max
+
+def calcular_materiais(item_nome, quantidade_desejada, receitas, acumulador=None):
+    if acumulador is None:
+        acumulador = defaultdict(int)
+
+    if item_nome not in receitas:
+        acumulador[item_nome] += quantidade_desejada
+        return acumulador
+
+    receita = receitas[item_nome]
+    produz_por_craft = receita['produz']
+    quantidade_de_crafts = math.ceil(quantidade_desejada / produz_por_craft)
+
+    for material in receita['materiais']:
+        nome_material = material['nome']
+        quantidade_por_craft = material['quantidade']
+        total_para_item = quantidade_por_craft * quantidade_de_crafts
+        calcular_materiais(nome_material, total_para_item, receitas, acumulador)
+
+    return acumulador
+
+def calcular_custo_minimo(item_final, quantidade, receitas, precos):
+    materiais_necessarios = calcular_materiais(item_final, quantidade, receitas)
+    custo_total = 0.0
+
+    precos_min = {}
+    if precos:
+        for categoria in precos.values():
+            if isinstance(categoria, dict) and 'min' in categoria and isinstance(categoria['min'], dict):
+                precos_min.update(categoria['min'])
+
+    for material, qtd in materiais_necessarios.items():
+        preco_unitario = 0.0
+        # 1. Tenta encontrar o preço exato do material na lista de preços achatada
+        if material in precos_min:
+            preco_unitario = precos_min[material]
+        # 2. Se não encontrou um preço específico e o item é um minério (ou carvão),
+        #    usa o preço genérico para "Qualquer Minério" como fallback.
+        elif "Minério" in material or material == "Carvão":
+            # Garante que a estrutura de preços da mineradora e o fallback existam
+            if "mineradora" in precos and "min" in precos["mineradora"] and "Qualquer Minério" in precos["mineradora"]["min"]:
+                preco_unitario = precos["mineradora"]["min"]["Qualquer Minério"]
+
+        custo_total += float(qtd) * preco_unitario
+
+    return custo_total
