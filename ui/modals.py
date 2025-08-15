@@ -63,8 +63,8 @@ class NewOrder(discord.ui.Modal):
         embed.add_field(name='📦 Produto', value=f'```{produto_name}```', inline=False)
         embed.add_field(name='🔢 Quantidade', value=f'```{self.quantidade.value}```', inline=False)
         embed.add_field(name='⏰ Prazo', value=f'```{self.prazo.value}```', inline=False)
-        embed.add_field(name='💰 Custo Mínimo de Fabricação', value=f'```{preco_min_str}```', inline=False)
-        embed.add_field(name='💵 Valor de Venda Mínimo', value=f'```{valor_venda_str}```', inline=False)
+        embed.add_field(name='💰 Custo Mínimo de Fabricação', value=f'```{preco_min_str}```', inline=True)
+        embed.add_field(name='💵 Valor de Venda Mínimo', value=f'```{valor_venda_str}```', inline=True)
 
         embed.add_field(name='👤 Criado por', value=f'{interaction.user.mention}', inline=False)
 
