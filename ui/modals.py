@@ -1,7 +1,7 @@
 import discord
 from ui.embeds import ConfirmView
 
-from cogs.calculator import calcular_custo_craft
+from cogs.calculator import calcular_custo_craft, find_price
 
 class NewOrder(discord.ui.Modal):
     def __init__(self, bot, button_data, receitas, precos, produto_predefinido: str = None):
@@ -42,6 +42,14 @@ class NewOrder(discord.ui.Modal):
             self.precos
         )
 
+        # CÁLCULO DE VALOR DE VENDA
+        preco_venda_unitario, _ = find_price(produto_name, self.precos)
+        if preco_venda_unitario is not None:
+            valor_venda_total = round(quantidade * preco_venda_unitario, 2)
+            valor_venda_str = f"$ {valor_venda_total}"
+        else:
+            valor_venda_str = "N/A"
+
         embed = discord.Embed(title='Confirmar nova encomenda!', color=discord.Colour.random())
 
         if preco_min == 0 and preco_max == 0 and produto_name in self.receitas:
@@ -57,7 +65,7 @@ class NewOrder(discord.ui.Modal):
         embed.add_field(name='🔢 Quantidade', value=f'```{self.quantidade.value}```', inline=False)
         embed.add_field(name='⏰ Prazo', value=f'```{self.prazo.value}```', inline=False)
         embed.add_field(name='💰 Custo Mínimo de Fabricação', value=f'```{preco_min_str}```', inline=False)
-        embed.add_field(name='💰 Custo Máximo de Fabricação', value=f'```{preco_max_str}```', inline=False)
+        embed.add_field(name='💵 Valor de Venda Mínimo', value=f'```{valor_venda_str}```', inline=False)
 
         embed.add_field(name='👤 Criado por', value=f'{interaction.user.mention}', inline=False)
 
@@ -71,7 +79,7 @@ class NewOrder(discord.ui.Modal):
             'produto': produto_name,
             'quantidade': self.quantidade.value,
             'prazo': self.prazo.value,
-            'venda': preco_min_str
+            'venda': valor_venda_str
 
         }
 
