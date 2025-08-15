@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from dotenv import load_dotenv
 from cogs.encomendas import EncomendaCog
+import webserver
 
 button_data = {}
 
@@ -51,4 +52,5 @@ if __name__ == "__main__":
     else:
         bot = MyBot()
         print("[MAIN] Iniciando o bot...")
+        webserver.keep_alive()
         bot.run(token)
