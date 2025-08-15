@@ -224,10 +224,13 @@ class EncomendaCog(commands.Cog):
             receitas = self.api_data.get("receitas_crafting", {})
             precos = self.api_data.get("precos", {})
             view = ProdutoDropdownView(self.bot, self.button_data, receitas, precos)
-            await interaction.response.send_message(
-                "🛠️ Selecione um produto antes de criar a encomenda:",
-                view=view,
-                ephemeral=True
+            if custom_id == "confirmar_encomenda":
+                await interaction.response.defer(ephemeral=True)
+                # ... faz os cálculos demorados ...
+                await interaction.followup.edit_message(
+                    message_id=interaction.message.id,
+                    embed=confirm_embed,
+                    view=None
             )
             print(f"[INTERACTION] [{interaction.user.name}] Modal aberto com sucesso.")
             return
