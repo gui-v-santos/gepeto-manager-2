@@ -75,4 +75,4 @@ class NewOrder(discord.ui.Modal):
 
         }
 
-        print(f"[MODAL] Embed enviado para confirmação, message ID: {message.id}")
+        print(f"[MODAL] [{interaction.user.name}] Embed enviado para confirmação, message ID: {message.id}")

@@ -58,10 +58,12 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
     total_produzido = total_crafts * produz_por_craft
     texto = f"Precisa: {quantidade_desejada} | Total a produzir: {total_produzido}\n\n"
 
+
     if repeticoes > 0:
         produz_por_lote = max_por_vez * produz_por_craft
-        texto += f"📋 Instruções de Lote (Repetir {repeticoes} vezes):\n"
-        texto += f"   - Fabricar: {produz_por_lote} (de {max_por_vez} fabricações)\n"
+        texto += f"📋 Instruções de Lote:\n"
+        texto += f"   - Repetir {repeticoes} vezes\n"
+        texto += f"   - Fabricar: {produz_por_lote}\n"
         texto += f"   - Materiais (para cada lote):\n"
         for mat in ingredientes:
             qtd_por_lote = mat['quantidade'] * max_por_vez
@@ -70,9 +72,10 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
 
     if resto > 0:
         produz_no_final = resto * produz_por_craft
-        texto += f"📋 Instruções do Lote Final (1 vez):\n"
-        texto += f"   - Fabricar: {produz_no_final} (de {resto} fabricações)\n"
-        texto += f"   - Materiais:\n"
+        texto += f"📋 Instruções do Lote Final:\n"
+        texto += f"   - Repetir 1 vez\n"
+        texto += f"   - Fabricar: {produz_no_final}\n"
+        texto += f"   - Materiais (para cada lote):\n"
         for mat in ingredientes:
             qtd_final = mat['quantidade'] * resto
             texto += f"      - {mat['nome']}: {qtd_final}\n"
@@ -299,7 +302,7 @@ class EncomendaCog(commands.Cog):
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
                 custo_materiais = calcular_custo_minimo(produto, quantidade, receitas, precos)
-                custo_materiais_str = f"R$ {custo_materiais:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                custo_materiais_str = f"$ {custo_materiais:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
@@ -308,7 +311,7 @@ class EncomendaCog(commands.Cog):
                 public_embed.add_field(name='Quantidade', value=f'```{quantidade}```', inline=False)
                 public_embed.add_field(name='Prazo', value=f'```{prazo if str(prazo).lower().endswith(("dia","dias")) else str(prazo) + (" Dia" if str(prazo).strip() == "1" else " Dias")}```', inline=False)
                 public_embed.add_field(name='Valor mínimo de venda', value=f'```{preco_min_str}```', inline=True)
-                public_embed.add_field(name='Custo Mínimo dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
+                public_embed.add_field(name='Valor de Compra dos Minerais', value=f'```{custo_materiais_str}```', inline=True)
                 public_embed.add_field(name='\u200B', value= '', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 

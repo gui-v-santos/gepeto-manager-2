@@ -1,5 +1,5 @@
 import os
-import aiohttp
+import json
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -10,18 +10,18 @@ button_data = {}
 API_DATA = {}
 
 async def load_api_data():
-    """Faz uma requisição à API e carrega os dados na variável global API_DATA."""
-    print("[API] Iniciando a requisição à API...")
-    async with aiohttp.ClientSession() as session:
-        try:
-            async with session.get(os.getenv("API_URL")) as response:
-                response.raise_for_status() # Lança um erro se a resposta for 4xx ou 5xx
-                global API_DATA
-                API_DATA = await response.json()
-                print("[API] Dados da API carregados com sucesso.")
-        except aiohttp.ClientError as e:
-            print(f"[ERRO] Falha ao carregar dados da API: {e}")
-            API_DATA = None # Deixa a variável como None em caso de erro
+    """Carrega os dados do arquivo local data.json para a variável global API_DATA."""
+    global API_DATA
+    try:
+        with open("data.json", "r", encoding="utf-8") as file:
+            API_DATA = json.load(file)
+        print("[API] Dados carregados com sucesso do arquivo local.")
+    except FileNotFoundError:
+        print("[ERRO] Arquivo data.json não encontrado.")
+        API_DATA = None
+    except json.JSONDecodeError:
+        print("[ERRO] Arquivo data.json está corrompido ou inválido.")
+        API_DATA = None
 
 class MyBot(commands.Bot):
     def __init__(self):
