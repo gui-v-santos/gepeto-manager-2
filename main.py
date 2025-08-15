@@ -1,5 +1,6 @@
 import os
 import json
+import aiohttp
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -11,8 +12,25 @@ button_data = {}
 API_DATA = {}
 
 async def load_api_data():
-    """Carrega os dados do arquivo local data.json para a variável global API_DATA."""
+    """Carrega os dados da API_URL ou, se indisponível, do arquivo local data.json."""
     global API_DATA
+    api_url = os.getenv("API_URL")
+
+    # 1️⃣ Tenta buscar da API
+    if api_url:
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(api_url, timeout=5) as resp:
+                    if resp.status == 200:
+                        API_DATA = await resp.json()
+                        print(f"[API] Dados carregados com sucesso da API: {api_url}")
+                        return
+                    else:
+                        print(f"[API] Falha ao carregar da API ({resp.status}), usando arquivo local...")
+        except Exception as e:
+            print(f"[API] Erro ao acessar a API ({e}), usando arquivo local...")
+
+    # 2️⃣ Fallback para o arquivo local
     try:
         with open("data.json", "r", encoding="utf-8") as file:
             API_DATA = json.load(file)
