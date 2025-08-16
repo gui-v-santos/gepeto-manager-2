@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from threading import Thread
 
@@ -9,7 +10,8 @@ def home():
     return "Welcome to the Web Server!"
 
 def run_server():
-    app.run(host='0.0.0.0', port=10000)
+    PORT = os.getenv("PORT")
+    app.run(host='0.0.0.0', port=PORT)
 
 def keep_alive():
     thread = Thread(target=run_server)
