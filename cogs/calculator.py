@@ -104,7 +104,7 @@ def calcular_materiais(item_nome, quantidade_desejada, receitas, acumulador=None
 
 def calcular_custo_minimo(item_final, quantidade, receitas, precos):
     materiais_necessarios = calcular_materiais(item_final, quantidade, receitas)
-    custo_total = 0.0
+    custo_total = 0
 
     precos_min = {}
     if precos:

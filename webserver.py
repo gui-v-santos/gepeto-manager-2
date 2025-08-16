@@ -10,7 +10,7 @@ def home():
     return "Welcome to the Web Server!"
 
 def run_server():
-    PORT = os.getenv("PORT")
+    PORT = os.getenv("PORT", 5000)
     app.run(host='0.0.0.0', port=PORT)
 
 def keep_alive():
