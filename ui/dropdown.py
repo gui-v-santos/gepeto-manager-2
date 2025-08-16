@@ -34,5 +34,5 @@ class ProdutoDropdown(discord.ui.Select):
 
 class ProdutoDropdownView(discord.ui.View):
     def __init__(self, bot, button_data, receitas, precos):
-        super().__init__(timeout=60)
+        super().__init__(timeout=300) # Timeout de 5 minutos
         self.add_item(ProdutoDropdown(bot, button_data, receitas, precos))
