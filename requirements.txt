@@ -2,3 +2,4 @@ discord
 flask
 dotenv
 aiohttp
+gunicorn
