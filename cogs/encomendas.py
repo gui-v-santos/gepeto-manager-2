@@ -44,7 +44,8 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
         produz_por_lote = max_por_vez * produz_por_craft
         texto += f"📋 Instruções de Lote:\n"
         texto += f"   - Repetir {repeticoes} vezes\n"
-        texto += f"   - Fabricar: {produz_por_lote}\n"
+        texto += f"   - Produzir {produz_por_lote}\n"
+        texto += f"   - Solicita por Vez: {max_por_vez}\n"
         texto += f"   - Materiais (para cada lote):\n"
         for mat in ingredientes:
             qtd_por_lote = mat['quantidade'] * max_por_vez
@@ -55,7 +56,8 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
         produz_no_final = resto * produz_por_craft
         texto += f"📋 Instruções do Lote Final:\n"
         texto += f"   - Repetir 1 vez\n"
-        texto += f"   - Fabricar: {produz_no_final}\n"
+        texto += f"   - Produzir {produz_no_final}\n"
+        texto += f"   - Solicita por Vez: {max_por_vez}\n"
         texto += f"   - Materiais (para cada lote):\n"
         for mat in ingredientes:
             qtd_final = mat['quantidade'] * resto
@@ -224,13 +226,10 @@ class EncomendaCog(commands.Cog):
             receitas = self.api_data.get("receitas_crafting", {})
             precos = self.api_data.get("precos", {})
             view = ProdutoDropdownView(self.bot, self.button_data, receitas, precos)
-            if custom_id == "confirmar_encomenda":
-                await interaction.response.defer(ephemeral=True)
-                # ... faz os cálculos demorados ...
-                await interaction.followup.edit_message(
-                    message_id=interaction.message.id,
-                    embed=confirm_embed,
-                    view=None
+            await interaction.response.send_message(
+                "🛠️ Selecione um produto antes de criar a encomenda:",
+                view=view,
+                ephemeral=True
             )
             print(f"[INTERACTION] [{interaction.user.name}] Modal aberto com sucesso.")
             return
@@ -260,7 +259,7 @@ class EncomendaCog(commands.Cog):
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
                 custo_materiais = calcular_custo_minimo(produto, quantidade, receitas, precos)
-                custo_materiais_str = f"$ {custo_materiais:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                custo_materiais_str = f"$ {custo_materiais:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)

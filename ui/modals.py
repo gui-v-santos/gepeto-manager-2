@@ -56,7 +56,7 @@ class NewOrder(discord.ui.Modal):
             preco_min_str = "❓"
             embed.set_footer(text="Custo zerado. Verifique se todos os materiais base possuem preço.")
         else:
-            preco_min_str = f"$ {preco_min}"
+            preco_min_str = f"$ {preco_min:.0f}"
 
         embed.add_field(name='🧑 Nome', value=f'```{self.name.value}```', inline=False)
         embed.add_field(name='🕊️ Pombo', value=f'```{self.pombo.value}```', inline=False)

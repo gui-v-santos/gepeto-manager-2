@@ -70,5 +70,5 @@ if __name__ == "__main__":
     else:
         bot = MyBot()
         print("[MAIN] Iniciando o bot...")
-        bot.run(token)
         webserver.keep_alive()
+        bot.run(token)
