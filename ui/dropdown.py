@@ -33,18 +33,9 @@ class ProdutoDropdown(discord.ui.Select):
         # Defer the interaction to avoid "interaction failed"
         await interaction.response.defer(ephemeral=True, thinking=False)
 
-        # Update the selection in the view's state
+        # Update the selection in the view's state.
+        # The view will be visually updated by the AdicionarItem button later.
         self.view.selecoes[self.index] = self.values[0]
-
-        # Rebuild the entire view to reflect the new state
-        self.view.build_view()
-
-        # Edit the original message with the updated view
-        try:
-            await interaction.message.edit(view=self.view)
-        except discord.errors.NotFound:
-            # This can happen if the original message was deleted
-            pass
 
 
 class ProdutoDropdownView(discord.ui.View):
