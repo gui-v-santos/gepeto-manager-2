@@ -133,6 +133,10 @@ def gerar_blocos_de_rateio(item_raiz, quantidade_desejada, receitas):
     # 3. Gerar os blocos de texto na ordem correta
     blocos = []
     for item in ordem_de_craft:
+        # Pula a geração do bloco de rateio para 'Farelo de Minério'
+        if item == "Farelo de Minério":
+            continue
+
         if item in necessidades and necessidades[item] > 0:
             qtd = math.ceil(necessidades[item])
             bloco_str = _formatar_bloco_individual(item, qtd, receitas)
