@@ -1,4 +1,5 @@
 import discord
+from ui.modals import NewOrder
 
 class ProdutoDropdown(discord.ui.Select):
     def __init__(self, bot, button_data, receitas, precos, index, selecionados):
@@ -105,6 +106,30 @@ class ProdutoDropdownView(discord.ui.View):
             self.parent_view = parent_view
 
         async def callback(self, interaction: discord.Interaction):
+            # Filtra para obter uma lista de nomes de produtos únicos.
+            produtos_selecionados = sorted(list(set(
+                self.parent_view.selecoes[key]
+                for key in self.parent_view.selecoes
+                if self.parent_view.selecoes[key] is not None
+            )))
+
+            if not produtos_selecionados:
+                await interaction.response.send_message(
+                    "⚠️ Nenhum produto selecionado!",
+                    ephemeral=True,
+                    delete_after=5
+                )
+                return
+
+            # Abre o modal NewOrder, passando a lista de produtos.
+            modal = NewOrder(
+                bot=self.parent_view.bot,
+                button_data=self.parent_view.button_data,
+                receitas=self.parent_view.receitas,
+                precos=self.parent_view.precos,
+                produtos_selecionados=produtos_selecionados
+            )
+            await interaction.response.send_modal(modal)
             # Filtra apenas os itens que foram selecionados.
             selecionados_com_valores = [
                 self.parent_view.selecoes[key]
