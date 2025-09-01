@@ -1,5 +1,7 @@
 import discord
+
 from ui.modals import NewOrder
+
 
 class ProdutoDropdown(discord.ui.Select):
     def __init__(self, bot, button_data, receitas, precos, index, selecionados):
@@ -30,12 +32,18 @@ class ProdutoDropdown(discord.ui.Select):
                     break
 
     async def callback(self, interaction: discord.Interaction):
-        # Defer the interaction to avoid "interaction failed"
+        # Silencioso: evita "interaction failed"
         await interaction.response.defer(ephemeral=True, thinking=False)
 
-        # Update the selection in the view's state.
-        # The view will be visually updated by the AdicionarItem button later.
+        # Atualiza a seleção na view.
         self.view.selecoes[self.index] = self.values[0]
+
+        # Atualiza a mensagem para mostrar a nova seleção.
+        # Adiciona um bloco try-except para ignorar o erro se a mensagem for fechada.
+        try:
+            await interaction.message.edit(view=self.view)
+        except discord.errors.NotFound:
+            pass
 
 
 class ProdutoDropdownView(discord.ui.View):
@@ -68,7 +76,7 @@ class ProdutoDropdownView(discord.ui.View):
 
     class AdicionarItem(discord.ui.Button):
         def __init__(self, parent_view):
-            super().__init__(label="➕ Adicionar Item", style=discord.ButtonStyle.primary)
+            super().__init__(label="Adicionar Item", style=discord.ButtonStyle.primary)
             self.parent_view = parent_view
 
         async def callback(self, interaction: discord.Interaction):
@@ -81,30 +89,25 @@ class ProdutoDropdownView(discord.ui.View):
                 )
                 return
 
-            await interaction.response.defer(ephemeral=True, thinking=False)
-
-            # Define o novo índice para o próximo dropdown
+            # Define o novo índice para o próximo dropdown.
             if not self.parent_view.selecoes:
                 new_dropdown_index = 0
             else:
                 new_dropdown_index = max(self.parent_view.selecoes.keys()) + 1
 
-            # Adiciona um marcador no dicionário de seleções para o novo dropdown
+            # Adiciona um marcador no dicionário de seleções para o novo dropdown.
             self.parent_view.selecoes[new_dropdown_index] = None
 
-            # Chama o método que reconstrói a view
+            # Chama o método que reconstrói a view, garantindo a ordem correta.
             self.parent_view.build_view()
 
-            # Tenta editar a mensagem com a view reconstruída
-            try:
-                await interaction.message.edit(view=self.parent_view)
-            except discord.errors.NotFound:
-                pass
+            # Tenta editar a mensagem com a view reconstruída.
+            await interaction.response.edit_message(view=self.parent_view)
 
 
     class EnviarEncomenda(discord.ui.Button):
         def __init__(self, parent_view):
-            super().__init__(label="Enviar Encomenda", style=discord.ButtonStyle.success)
+            super().__init__(label="Continuar...", style=discord.ButtonStyle.success)
             self.parent_view = parent_view
 
         async def callback(self, interaction: discord.Interaction):
