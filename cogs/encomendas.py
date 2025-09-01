@@ -64,42 +64,23 @@ def dividir_em_blocos(texto, tamanho_max=1018):
         blocos.append(bloco_atual.rstrip())
     return blocos
 
-def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
-    # 1. Calcular a necessidade total de cada item craftável na encomenda inteira.
-    all_craft_needs = defaultdict(float)
+def calcular_necessidades_intermediarios(produtos_list, receitas):
+    necessidades = defaultdict(float)
+    a_processar = [(p['name'], p['quantity']) for p in produtos_list]
 
-    def get_component_needs(item, qty, needs_dict):
+    while a_processar:
+        item, quantidade = a_processar.pop(0)
+
         if item in receitas:
-            needs_dict[item] += qty
             receita = receitas[item]
-            crafts_needed = math.ceil(needs_dict[item] / receita['produz'])
-
-            # Zera a necessidade do item já processado para não acumular em chamadas recursivas
-            needs_dict[item] = 0
-
+            crafts_necessarios = math.ceil(quantidade / receita['produz'])
+            necessidades[item] += quantidade
             for material in receita['materiais']:
-                get_component_needs(material['nome'], material['quantidade'] * crafts_needed, needs_dict)
+                a_processar.append((material['nome'], material['quantidade'] * crafts_necessarios))
+    return necessidades
 
-    # Acumula as necessidades de todos os produtos da encomenda
-    for produto in produtos_list:
-        componentes_produto = defaultdict(float)
-        # Função aninhada para calcular os componentes de um único produto
-        def calcular_componentes_produto(item, qtd, acc):
-            if item in receitas:
-                acc[item] += qtd
-                receita = receitas[item]
-                crafts_necessarios = math.ceil(qtd / receita['produz'])
-                for mat in receita['materiais']:
-                    calcular_componentes_produto(mat['nome'], mat['quantidade'] * crafts_necessarios, acc)
-
-        calcular_componentes_produto(produto['name'], produto['quantity'], componentes_produto)
-
-        # Adiciona as necessidades calculadas às necessidades totais
-        for item, qtd in componentes_produto.items():
-            all_craft_needs[item] += qtd
-
-
-    # 2. Obter a ordem de craft correta (top-down) e de-duplicada.
+def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
+    all_craft_needs = calcular_necessidades_intermediarios(produtos_list, receitas)
     craft_order = []
     visited = set()
     def get_order(item):
@@ -108,11 +89,9 @@ def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
             craft_order.append(item)
             for material in receitas[item]['materiais']:
                 get_order(material['nome'])
-
     for produto in produtos_list:
         get_order(produto['name'])
 
-    # 3. Gerar os blocos de texto consolidados.
     blocos_finais = []
     for item in craft_order:
         if item in all_craft_needs and all_craft_needs[item] > 0:
@@ -120,9 +99,7 @@ def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
             bloco_str = _formatar_bloco_individual(item, total_a_produzir, receitas)
             if bloco_str:
                 blocos_finais.append((f"➡️ {item.upper()}", bloco_str))
-
     return blocos_finais
-
 
 class EncomendaCog(commands.Cog):
     def __init__(self, bot: commands.Bot, button_data: dict, api_data: dict):
@@ -140,12 +117,7 @@ class EncomendaCog(commands.Cog):
         message_found = None
         async for message in channel.history(limit=20):
             if message.author == self.bot.user and message.embeds and message.embeds[0].title == "Criar nova encomenda":
-                message_found = message
                 break
-
-        if not message_found:
-            embed = discord.Embed(title="Criar nova encomenda", description="Clique no botão abaixo para criar uma nova encomenda.", color=discord.Color.blue())
-            await channel.send(embed=embed, view=EncomendaView())
 
         self.bot.add_view(EncomendaView())
 
@@ -187,10 +159,18 @@ class EncomendaCog(commands.Cog):
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
 
-                materiais_necessarios = calcular_materiais_para_lista(produtos_list, receitas)
-                custo_total = calcular_custo_de_materiais(materiais_necessarios, precos)
+                # 1. Calcular os materiais brutos para o custo
+                materiais_brutos_para_custo = calcular_materiais_para_lista(produtos_list, receitas)
+                custo_total = calcular_custo_de_materiais(materiais_brutos_para_custo, precos)
                 custo_materiais_str = f"$ {custo_total:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+                # 2. Preparar a lista de materiais para exibição
+                materiais_para_exibir = calcular_materiais_para_lista(produtos_list, receitas)
+                necessidades_intermediarios = calcular_necessidades_intermediarios(produtos_list, receitas)
+                if 'Farelo de Minério' in necessidades_intermediarios:
+                    materiais_para_exibir['Farelo de Minério'] = necessidades_intermediarios['Farelo de Minério']
+
+                # 3. Gerar o embed
                 produtos_str = "\n".join([f"🔹 {p['name']}: {p['quantity']}" for p in produtos_list])
 
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
@@ -203,7 +183,7 @@ class EncomendaCog(commands.Cog):
                 public_embed.add_field(name='\u200B', value='', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
-                materiais_formatados_str = "\n".join([f"🔹 {item}: {math.ceil(quant)}" for item, quant in materiais_necessarios.items()])
+                materiais_formatados_str = "\n".join([f"🔹 {item}: {math.ceil(quant)}" for item, quant in sorted(materiais_para_exibir.items())])
                 if materiais_formatados_str:
                     public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
                     public_embed.add_field(name='\u200B', value='', inline=False)
