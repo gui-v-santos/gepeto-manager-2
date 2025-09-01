@@ -1,6 +1,7 @@
 import discord
 from ui.embeds import ConfirmView
 from cogs.calculator import find_price, calcular_custo_minimo
+import re
 
 class NewOrder(discord.ui.Modal):
     def __init__(self, bot, button_data, receitas, precos, produtos_selecionados: list):
@@ -9,50 +10,50 @@ class NewOrder(discord.ui.Modal):
         self.button_data = button_data
         self.receitas = receitas
         self.precos = precos
-        self.produtos_selecionados = produtos_selecionados
 
-        self.campos_quantidade = {}
+        # Preenche o valor padrão para o campo de texto de quantidades
+        quantidades_default = "\n".join([f"{nome}: 1" for nome in produtos_selecionados])
 
-        # Campos fixos
-        self.name = discord.ui.TextInput(label='Nome do Comprador', placeholder='Nome do comprador', required=True)
-        self.pombo = discord.ui.TextInput(label='Pombo (ID)', placeholder='ID do pombo', required=True)
-        self.prazo = discord.ui.TextInput(label='Prazo de Entrega', placeholder='Prazo em dias (ex: 3 dias)', required=True)
+        # Componentes fixos do modal
+        self.name = discord.ui.TextInput(label='Nome do Comprador', required=True)
+        self.pombo = discord.ui.TextInput(label='Pombo (ID)', required=True)
+        self.prazo = discord.ui.TextInput(label='Prazo de Entrega', required=True)
+        self.quantidades = discord.ui.TextInput(
+            label="Produtos e Quantidades",
+            style=discord.TextStyle.paragraph,
+            default=quantidades_default,
+            required=True
+        )
+
         self.add_item(self.name)
         self.add_item(self.pombo)
+        self.add_item(self.prazo)
+        self.add_item(self.quantidades)
 
-        # Campos dinâmicos para quantidade
-        for produto_nome in self.produtos_selecionados:
-            campo = discord.ui.TextInput(
-                label=f"Quantidade de {produto_nome}",
-                placeholder=f"Digite a quantidade para {produto_nome}",
-                required=True,
-                custom_id=f"quantidade_{produto_nome}"
-            )
-            self.add_item(campo)
-            self.campos_quantidade[produto_nome] = campo
-
-        # Adiciona prazo por último se houver espaço
-        if len(self.children) < 5:
-            self.add_item(self.prazo)
 
     async def on_submit(self, interaction: discord.Interaction):
         print(f"[MODAL] [{interaction.user.name}] processando os dados da encomenda...")
 
         produtos_list = []
-        produtos_str_list = []
         total_custo_min = 0
         total_valor_venda = 0
         has_valid_sale_price = False
 
-        for produto_nome, campo_input in self.campos_quantidade.items():
+        # Analisa o campo de texto de quantidades
+        linhas = self.quantidades.value.strip().split('\n')
+        for linha in linhas:
+            match = re.match(r'([^:]+):\s*(\d+)', linha)
+            if not match:
+                continue
+
+            produto_nome = match.group(1).strip()
             try:
-                quantidade = int(campo_input.value)
+                quantidade = int(match.group(2).strip())
                 if quantidade <= 0: continue
             except (ValueError, TypeError):
                 continue
 
             produtos_list.append({'name': produto_nome, 'quantity': quantidade})
-            produtos_str_list.append(f"{produto_nome}: {quantidade}")
 
             # Cálculo de custo de craft
             custo_min_item = calcular_custo_minimo(produto_nome, quantidade, self.receitas, self.precos)
@@ -71,6 +72,7 @@ class NewOrder(discord.ui.Modal):
         # Monta o embed de confirmação
         embed = discord.Embed(title='Confirmar Nova Encomenda!', color=discord.Colour.random())
 
+        produtos_str_list = [f"{p['name']}: {p['quantity']}" for p in produtos_list]
         preco_min_str = f"$ {total_custo_min:.0f}"
         valor_venda_str = f"$ {total_valor_venda:.0f}" if has_valid_sale_price else "N/A"
 
