@@ -4,8 +4,7 @@ from ui.modals import NewOrder
 from ui.embeds import EncomendaView
 import math
 from collections import defaultdict
-from ui.dropdown import ProdutoDropdownView
-from .calculator import calcular_custo_minimo, calcular_materiais
+from .calculator import calcular_materiais_para_lista, calcular_custo_de_materiais
 
 # ID do canal onde o botão de nova encomenda será enviado
 ID_CANAL_ENCOMENDA = 1402582869280292894
@@ -158,6 +157,20 @@ def dividir_em_blocos(texto, tamanho_max=1018):
 
     return blocos
 
+def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
+    """
+    Gera blocos de rateio para uma lista de produtos, consolidando os resultados.
+    """
+    blocos_finais = []
+    for produto in produtos_list:
+        blocos_produto = gerar_blocos_de_rateio(
+            produto['name'],
+            produto['quantity'],
+            receitas
+        )
+        blocos_finais.extend(blocos_produto)
+    return blocos_finais
+
 class EncomendaCog(commands.Cog):
     def __init__(self, bot: commands.Bot, button_data: dict, api_data: dict):
         self.bot = bot
@@ -225,12 +238,8 @@ class EncomendaCog(commands.Cog):
             print(f"[INTERACTION] [{interaction.user.name}] Botão 'Nova Encomenda' clicado, abrindo modal...")
             receitas = self.api_data.get("receitas_crafting", {})
             precos = self.api_data.get("precos", {})
-            view = ProdutoDropdownView(self.bot, self.button_data, receitas, precos)
-            await interaction.response.send_message(
-                "🛠️ Selecione um produto antes de criar a encomenda:",
-                view=view,
-                ephemeral=True
-            )
+            modal = NewOrder(self.bot, self.button_data, receitas, precos)
+            await interaction.response.send_modal(modal)
             print(f"[INTERACTION] [{interaction.user.name}] Modal aberto com sucesso.")
             return
 
@@ -250,43 +259,43 @@ class EncomendaCog(commands.Cog):
 
                 name = data.get('name')
                 pombo = data.get('pombo')
-                produto = data.get('produto')
-                quantidade = int(data.get('quantidade'))
+                produtos_list = data.get('produtos')
                 prazo = data.get('prazo')
                 preco_min_str = data.get('venda')
 
-                # CÁLCULOS
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
-                custo_materiais = calcular_custo_minimo(produto, quantidade, receitas, precos)
-                custo_materiais_str = f"$ {custo_materiais:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                # CÁLCULO DE MATERIAIS E CUSTO TOTAL
+                materiais_necessarios = calcular_materiais_para_lista(produtos_list, receitas)
+                custo_total = calcular_custo_de_materiais(materiais_necessarios, precos)
+                custo_materiais_str = f"$ {custo_total:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                # Formatação da lista de produtos para o embed
+                produtos_str = "\n".join([f"🔹 {p['name']}: {p['quantity']}" for p in produtos_list])
 
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
                 public_embed.add_field(name='Pombo', value=f'```{pombo}```', inline=False)
-                public_embed.add_field(name='Produto', value=f'```{produto}```', inline=False)
-                public_embed.add_field(name='Quantidade', value=f'```{quantidade}```', inline=False)
+                public_embed.add_field(name='Produtos', value=f'```{produtos_str}```', inline=False)
                 public_embed.add_field(name='Prazo', value=f'```{prazo if str(prazo).lower().endswith(("dia","dias")) else str(prazo) + (" Dia" if str(prazo).strip() == "1" else " Dias")}```', inline=False)
                 public_embed.add_field(name='Valor mínimo de venda', value=f'```{preco_min_str}```', inline=True)
-                public_embed.add_field(name='Valor de Compra dos Minerais', value=f'```{custo_materiais_str}```', inline=True)
-                public_embed.add_field(name='\u200B', value= '', inline=False)
+                public_embed.add_field(name='Valor de Compra dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
+                public_embed.add_field(name='\u200B', value='', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
-                # CÁLCULO DE MATERIAIS
-                materiais_necessarios = calcular_materiais(produto, quantidade, receitas)
-
-                materiais_str = "\n".join(
-                    [f"🔹 {item}: {int(float(quant))}" for item, quant in materiais_necessarios.items()]
+                # Adiciona campo de materiais necessários
+                materiais_formatados_str = "\n".join(
+                    [f"🔹 {item}: {math.ceil(quant)}" for item, quant in materiais_necessarios.items()]
                 )
-                public_embed.add_field(name='Materiais Necessários', value=materiais_str, inline=False)
-                public_embed.add_field(name='\u200B', value= '', inline=False)
+                public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
+                public_embed.add_field(name='\u200B', value='', inline=False)
                 
-                blocos_rateio = gerar_blocos_de_rateio(produto, quantidade, receitas)
+                # GERAÇÃO E ADIÇÃO DOS BLOCOS DE RATEIO
+                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
 
-                for i, (titulo, conteudo) in enumerate(blocos_rateio[:25]):
-                    # Verifica se o conteúdo não excede o limite de caracteres do Discord
+                for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]): # Limite de 25 campos no total
                     if len(conteudo) > 1024:
-                        # Se exceder, divide o conteúdo e adiciona como campos continuados
                         partes = dividir_em_blocos(conteudo)
                         for j, parte in enumerate(partes):
                             titulo_parte = titulo if j == 0 else f"{titulo} (cont.)"
@@ -294,8 +303,8 @@ class EncomendaCog(commands.Cog):
                     else:
                         public_embed.add_field(name=titulo, value=f"```{conteudo}```", inline=False)
 
-                if len(blocos_rateio) > 25:
-                    print("[WARNING] Rateio truncado por exceder 25 campos de embed.")
+                if len(blocos_rateio) > 23:
+                    print("[WARNING] Rateio truncado por exceder limite de campos do embed.")
 
 
                 pubic_message = await public_channel.send(embed=public_embed)
