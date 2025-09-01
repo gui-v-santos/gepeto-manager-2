@@ -26,7 +26,7 @@ class NewOrder(discord.ui.Modal):
         self.produtos = discord.ui.TextInput(
             label='Produtos e Quantidades',
             style=discord.TextStyle.paragraph,
-            placeholder='Coloque cada produto em uma nova linha no formato:\nNome do Produto: Quantidade\n\nExemplo:\nLockpick: 50\nAdaga de Ferro: 10',
+            placeholder='Um produto por linha. Formato: Produto: Qtd\nEx:\nLockpick: 50\nAdaga de Ferro: 10',
             required=True
         )
         self.prazo = discord.ui.TextInput(
