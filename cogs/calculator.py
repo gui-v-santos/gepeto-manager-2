@@ -86,7 +86,8 @@ def calcular_materiais(item_nome, quantidade_desejada, receitas, acumulador=None
     if acumulador is None:
         acumulador = defaultdict(float)
 
-    if item_nome not in receitas:
+    # Condição para tratar 'Farelo de Minério' como matéria-prima
+    if item_nome not in receitas or item_nome == "Farelo de Minério":
         acumulador[item_nome] += quantidade_desejada
         return acumulador
 
