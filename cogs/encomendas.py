@@ -15,31 +15,19 @@ ID_CANAL_PUBLICO = 1160775850334113852
 ID_GUILD = 1145126424248848514
 
 def _formatar_bloco_individual(item, quantidade_desejada, receitas):
-    """
-    Formata a string de rateio para um único item, usando a lógica de lotes
-    cheios e um lote final menor para otimizar a produção.
-    """
     if item not in receitas:
         return ""
-
     receita = receitas[item]
     produz_por_craft = receita['produz']
     ingredientes = receita['materiais']
-
     total_crafts = math.ceil(quantidade_desejada / produz_por_craft)
-
     soma_materiais_por_craft = sum(mat['quantidade'] for mat in ingredientes)
     max_por_vez = math.floor(300 / soma_materiais_por_craft) if soma_materiais_por_craft > 0 else total_crafts
     if max_por_vez == 0: max_por_vez = 1
-
-    # Lógica de Lotes Otimizada
     repeticoes = total_crafts // max_por_vez
     resto = total_crafts % max_por_vez
-
     total_produzido = total_crafts * produz_por_craft
     texto = f"Precisa: {quantidade_desejada} | Total a produzir: {total_produzido}\n\n"
-
-
     if repeticoes > 0:
         produz_por_lote = max_por_vez * produz_por_craft
         texto += f"📋 Instruções de Lote:\n"
@@ -51,7 +39,6 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
             qtd_por_lote = mat['quantidade'] * max_por_vez
             texto += f"      - {mat['nome']}: {qtd_por_lote}\n"
         texto += "\n"
-
     if resto > 0:
         produz_no_final = resto * produz_por_craft
         texto += f"📋 Instruções do Lote Final:\n"
@@ -62,63 +49,23 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
         for mat in ingredientes:
             qtd_final = mat['quantidade'] * resto
             texto += f"      - {mat['nome']}: {qtd_final}\n"
-
     return texto.strip()
 
 def gerar_blocos_de_rateio(item_raiz, quantidade_desejada, receitas):
-    """
-    Gera uma lista de blocos de texto de rateio, um para cada item craftável,
-    de forma consolidada e na ordem correta.
-    """
-
-    # 1. Calcular a necessidade total de TODOS os itens (intermediários e crus)
-    def calcular_necessidades_totais(item, qtd):
-        necessidades = defaultdict(int)
-        # Fila para processamento (item, quantidade)
-        fila = [(item, qtd)]
-
-        while fila:
-            item_atual, qtd_atual = fila.pop(0)
-            necessidades[item_atual] += qtd_atual
-
-            if item_atual in receitas:
-                receita = receitas[item_atual]
-                # Quantidade de crafts necessários para a quantidade ACUMULADA do item
-                crafts_necessarios = math.ceil(necessidades[item_atual] / receita['produz'])
-
-                # Zera a necessidade do item que já foi processado para não entrar em loop
-                necessidades[item_atual] = 0
-
-                for mat in receita['materiais']:
-                    fila.append((mat['nome'], mat['quantidade'] * crafts_necessarios))
-        return necessidades
-
-    # Na verdade, uma abordagem recursiva para calcular as necessidades de craft
-    # é mais simples e menos propensa a erros de estado.
     def calcular_necessidades_craft(item, qtd, receitas):
         necessidades = defaultdict(int)
-
-        # Adiciona a necessidade do item atual
         if item in receitas:
             necessidades[item] += qtd
-
-        # Se não for craftável, não tem sub-materiais para adicionar
         if item not in receitas:
             return necessidades
-
         receita = receitas[item]
         crafts_necessarios = math.ceil(qtd / receita['produz'])
-
         for mat in receita['materiais']:
             sub_necessidades = calcular_necessidades_craft(mat['nome'], mat['quantidade'] * crafts_necessarios, receitas)
             for sub_item, sub_qtd in sub_necessidades.items():
                 necessidades[sub_item] += sub_qtd
-
         return necessidades
-
     necessidades = calcular_necessidades_craft(item_raiz, quantidade_desejada, receitas)
-
-    # 2. Obter a ordem de craft correta (top-down)
     ordem_de_craft = []
     visitados = set()
     def obter_ordem(item):
@@ -127,45 +74,32 @@ def gerar_blocos_de_rateio(item_raiz, quantidade_desejada, receitas):
             ordem_de_craft.append(item)
             for mat in receitas[item]['materiais']:
                 obter_ordem(mat['nome'])
-
     obter_ordem(item_raiz)
-
-    # 3. Gerar os blocos de texto na ordem correta
     blocos = []
     for item in ordem_de_craft:
-        # Pula a geração do bloco de rateio para 'Farelo de Minério'
         if item == "Farelo de Minério":
             continue
-
         if item in necessidades and necessidades[item] > 0:
             qtd = math.ceil(necessidades[item])
             bloco_str = _formatar_bloco_individual(item, qtd, receitas)
             if bloco_str:
                 blocos.append((f"➡️ {item.upper()}", bloco_str))
-
     return blocos
-
 
 def dividir_em_blocos(texto, tamanho_max=1018):
     blocos = []
     bloco_atual = ""
-
     for linha in texto.splitlines(keepends=True):
         if len(bloco_atual) + len(linha) > tamanho_max:
-            blocos.append(bloco_atual.rstrip())  # remove \n final se tiver
+            blocos.append(bloco_atual.rstrip())
             bloco_atual = linha
         else:
             bloco_atual += linha
-
     if bloco_atual:
         blocos.append(bloco_atual.rstrip())
-
     return blocos
 
 def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
-    """
-    Gera blocos de rateio para uma lista de produtos, consolidando os resultados.
-    """
     blocos_finais = []
     for produto in produtos_list:
         blocos_produto = gerar_blocos_de_rateio(
@@ -184,27 +118,19 @@ class EncomendaCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        print("[COG] 'EncomendaCog' pronta.")
-        
         guild = self.bot.get_guild(ID_GUILD)
         if not guild: return
-        
         channel = guild.get_channel(ID_CANAL_ENCOMENDA)
         if not channel:
-            print("[READY] Canal de encomenda não encontrado!")
             return
-
         message_found = None
         async for message in channel.history(limit=20):
             if message.author == self.bot.user and message.embeds and message.embeds[0].title == "Criar nova encomenda":
                 message_found = message
                 break
-
         if message_found:
-            print(f"[READY] Mensagem de encomenda existente encontrada com ID: {message_found.id}")
             self.bot.add_view(EncomendaView())
         else:
-            print("[READY] Nenhuma mensagem de encomenda encontrada, enviando nova...")
             embed = discord.Embed(
                 title="Criar nova encomenda",
                 description="Clique no botão abaixo para criar uma nova encomenda.",
@@ -212,71 +138,47 @@ class EncomendaCog(commands.Cog):
             )
             view = EncomendaView()
             await channel.send(embed=embed, view=view)
-            print(f"[READY] Nova mensagem de encomenda enviada.")
             self.bot.add_view(view)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
-        # Ignora interações que não são de componentes (botões, dropdowns)
         if interaction.type != discord.InteractionType.component:
             return
-
         custom_id = interaction.data.get('custom_id', '')
-
-        # Lógica para o botão inicial de criar encomenda
         if custom_id == "botao_encomenda":
             if not self.api_data:
                 await interaction.response.send_message("❌ Os dados da API não foram carregados.", ephemeral=True)
                 return
-
-            # Verifica permissão
             allowed_roles_ids = self.api_data.get('permission', [])
             user_roles_ids = {str(role.id) for role in interaction.user.roles}
             if user_roles_ids.isdisjoint(allowed_roles_ids):
                 await interaction.response.send_message("❌ Você não tem permissão.", ephemeral=True, delete_after=5)
                 return
-            
-            print(f"[INTERACTION] [{interaction.user.name}] Clicou em 'Nova Encomenda'.")
             receitas = self.api_data.get("receitas_crafting", {})
             precos = self.api_data.get("precos", {})
-
             view = ProdutoDropdownView(self.bot, self.button_data, receitas, precos)
-            await interaction.response.send_message(
-                "🛠️ Selecione os produtos que deseja encomendar:",
-                view=view,
-                ephemeral=True
-            )
+            await interaction.response.send_message("🛠️ Selecione os produtos que deseja encomendar:", view=view, ephemeral=True)
             return
 
-        # Lógica para os botões de confirmação/cancelamento da encomenda final
         if custom_id in ["confirmar_encomenda", "cancelar_encomenda"]:
             message_id = interaction.message.id
             data = self.button_data.get(message_id)
             if not data:
                 return
-
             if custom_id == "confirmar_encomenda":
-                print(f"[INTERACTION] [{interaction.user.name}] Confirmou a encomenda.")
                 guild = self.bot.get_guild(ID_GUILD)
                 public_channel = guild.get_channel(ID_CANAL_PUBLICO)
-
                 name = data.get('name')
                 pombo = data.get('pombo')
                 produtos_list = data.get('produtos', [])
                 prazo = data.get('prazo')
                 preco_min_str = data.get('venda')
-
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
-
-                # Cálculos agregados
                 materiais_necessarios = calcular_materiais_para_lista(produtos_list, receitas)
                 custo_total = calcular_custo_de_materiais(materiais_necessarios, precos)
                 custo_materiais_str = f"$ {custo_total:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
-
                 produtos_str = "\n".join([f"🔹 {p['name']}: {p['quantity']}" for p in produtos_list])
-
-                # Monta o embed público
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
                 public_embed.add_field(name='Pombo', value=f'```{pombo}```', inline=False)
@@ -286,15 +188,12 @@ class EncomendaCog(commands.Cog):
                 public_embed.add_field(name='Custo dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
                 public_embed.add_field(name='\u200B', value='', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
-
                 materiais_formatados_str = "\n".join(
                     [f"🔹 {item}: {math.ceil(quant)}" for item, quant in materiais_necessarios.items()]
                 )
                 if materiais_formatados_str:
                     public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
                     public_embed.add_field(name='\u200B', value='', inline=False)
-
-                # Blocos de rateio
                 blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
                 for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]):
                     if len(conteudo) > 1024:
@@ -304,20 +203,13 @@ class EncomendaCog(commands.Cog):
                             public_embed.add_field(name=titulo_parte, value=f"```{parte}```", inline=False)
                     else:
                         public_embed.add_field(name=titulo, value=f"```{conteudo}```", inline=False)
-
                 if len(blocos_rateio) > 23:
                     print("[WARNING] Rateio truncado por exceder limite de campos do embed.")
-
-                # Envio e finalização
                 pubic_message = await public_channel.send(embed=public_embed)
                 public_message_link = f"https://discord.com/channels/{ID_GUILD}/{ID_CANAL_PUBLICO}/{pubic_message.id}"
-
                 confirm_embed = discord.Embed(title='Encomenda Confirmada!', color=discord.Color.green())
                 confirm_embed.add_field(name='', value=f"✅ [Clique aqui para ver os detalhes]({public_message_link})")
                 await interaction.response.edit_message(embed=confirm_embed, view=None)
-                print(f"[INTERACTION] [{interaction.user.name}] Encomenda publicada com sucesso.")
-
             elif custom_id == "cancelar_encomenda":
-                print(f"[INTERACTION] [{interaction.user.name}] Cancelou a encomenda.")
                 cancel_embed = discord.Embed(title='Encomenda Cancelada', color=discord.Color.red())
                 await interaction.response.edit_message(embed=cancel_embed, view=None)

@@ -86,8 +86,7 @@ def calcular_materiais(item_nome, quantidade_desejada, receitas, acumulador=None
     if acumulador is None:
         acumulador = defaultdict(float)
 
-    # Condição para tratar 'Farelo de Minério' como matéria-prima
-    if item_nome not in receitas or item_nome == "Farelo de Minério":
+    if item_nome not in receitas:
         acumulador[item_nome] += quantidade_desejada
         return acumulador
 
@@ -104,9 +103,6 @@ def calcular_materiais(item_nome, quantidade_desejada, receitas, acumulador=None
     return acumulador
 
 def calcular_materiais_para_lista(produtos_list, receitas):
-    """
-    Calcula os materiais agregados para uma lista de produtos.
-    """
     materiais_agregados = defaultdict(float)
     for produto in produtos_list:
         calcular_materiais(
@@ -118,9 +114,6 @@ def calcular_materiais_para_lista(produtos_list, receitas):
     return materiais_agregados
 
 def calcular_custo_de_materiais(materiais_necessarios, precos):
-    """
-    Calcula o custo total para uma lista de materiais já agregada.
-    """
     custo_total = 0
     precos_min = {}
     if precos:
@@ -135,15 +128,9 @@ def calcular_custo_de_materiais(materiais_necessarios, precos):
         elif "Minério" in material or material == "Carvão":
             if "mineradora" in precos and "min" in precos["mineradora"] and "Qualquer Minério" in precos["mineradora"]["min"]:
                 preco_unitario = precos["mineradora"]["min"]["Qualquer Minério"]
-
         custo_total += float(qtd) * preco_unitario
-
     return custo_total
 
 def calcular_custo_minimo(item_final, quantidade, receitas, precos):
-    """
-    Mantido para compatibilidade com o modal, mas idealmente seria refatorado.
-    Calcula o custo para um único item.
-    """
     materiais_necessarios = calcular_materiais(item_final, quantidade, receitas)
     return calcular_custo_de_materiais(materiais_necessarios, precos)
