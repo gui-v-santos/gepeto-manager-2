@@ -130,3 +130,21 @@ class ProdutoDropdownView(discord.ui.View):
                 produtos_selecionados=produtos_selecionados
             )
             await interaction.response.send_modal(modal)
+            # Filtra apenas os itens que foram selecionados.
+            selecionados_com_valores = [
+                self.parent_view.selecoes[key]
+                for key in sorted(self.parent_view.selecoes.keys())
+                if self.parent_view.selecoes[key] is not None
+            ]
+
+            if not selecionados_com_valores:
+                await interaction.response.send_message(
+                    "⚠️ Nenhum produto selecionado!",
+                    ephemeral=True
+                )
+                return
+
+            await interaction.response.send_message(
+                f"📦 Pedido enviado com os itens: {', '.join(selecionados_com_valores)}",
+                ephemeral=True
+            )
