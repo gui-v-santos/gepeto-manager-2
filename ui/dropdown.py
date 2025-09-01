@@ -81,22 +81,30 @@ class ProdutoDropdownView(discord.ui.View):
             self.parent_view = parent_view
 
         async def callback(self, interaction: discord.Interaction):
+            # Limite de 4 dropdowns + 1 linha de botões = 5 linhas (limite do Discord)
+            if len(self.parent_view.selecoes) >= 4:
+                await interaction.response.send_message(
+                    "❌ Você atingiu o limite de 4 produtos por encomenda.",
+                    ephemeral=True,
+                    delete_after=10
+                )
+                return
+
             await interaction.response.defer(ephemeral=True, thinking=False)
 
-            # Define o novo índice para o próximo dropdown.
+            # Define o novo índice para o próximo dropdown
             if not self.parent_view.selecoes:
                 new_dropdown_index = 0
             else:
                 new_dropdown_index = max(self.parent_view.selecoes.keys()) + 1
 
-            # Adiciona um marcador no dicionário de seleções para o novo dropdown.
+            # Adiciona um marcador no dicionário de seleções para o novo dropdown
             self.parent_view.selecoes[new_dropdown_index] = None
 
-            # Chama o método que reconstrói a view, garantindo a ordem correta
-            # e evitando o erro de item duplicado.
+            # Chama o método que reconstrói a view
             self.parent_view.build_view()
 
-            # Tenta editar a mensagem com a view reconstruída.
+            # Tenta editar a mensagem com a view reconstruída
             try:
                 await interaction.message.edit(view=self.parent_view)
             except discord.errors.NotFound:
