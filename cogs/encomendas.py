@@ -4,6 +4,7 @@ from ui.modals import NewOrder
 from ui.embeds import EncomendaView
 import math
 from collections import defaultdict
+from ui.dropdown import ProdutoDropdownView
 from .calculator import calcular_materiais_para_lista, calcular_custo_de_materiais
 
 # ID do canal onde o botão de nova encomenda será enviado
@@ -212,89 +213,86 @@ class EncomendaCog(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
-        if interaction.type != discord.InteractionType.component:
+        # Ignora interações que não são de componentes (botões, dropdowns)
+        if not interaction.is_component():
             return
 
-        custom_id = interaction.data.get('custom_id')
+        custom_id = interaction.data.get('custom_id', '')
 
+        # Lógica para o botão inicial de criar encomenda
         if custom_id == "botao_encomenda":
             if not self.api_data:
-                await interaction.response.send_message(
-                    "❌ Os dados da API não foram carregados. Tente novamente mais tarde.",
-                    ephemeral=True
-                )
+                await interaction.response.send_message("❌ Os dados da API não foram carregados.", ephemeral=True)
                 return
 
-            allowed_roles_ids = self.api_data['permission']
+            # Verifica permissão
+            allowed_roles_ids = self.api_data.get('permission', [])
             user_roles_ids = {str(role.id) for role in interaction.user.roles}
             if user_roles_ids.isdisjoint(allowed_roles_ids):
-                await interaction.response.send_message(
-                    "❌ Você não tem permissão para criar uma nova encomenda.",
-                    ephemeral=True,
-                    delete_after=5
-                )
+                await interaction.response.send_message("❌ Você não tem permissão.", ephemeral=True, delete_after=5)
                 return
             
-            print(f"[INTERACTION] [{interaction.user.name}] Botão 'Nova Encomenda' clicado, abrindo modal...")
+            print(f"[INTERACTION] [{interaction.user.name}] Clicou em 'Nova Encomenda'.")
             receitas = self.api_data.get("receitas_crafting", {})
             precos = self.api_data.get("precos", {})
-            modal = NewOrder(self.bot, self.button_data, receitas, precos)
-            await interaction.response.send_modal(modal)
-            print(f"[INTERACTION] [{interaction.user.name}] Modal aberto com sucesso.")
+
+            view = ProdutoDropdownView(self.bot, self.button_data, receitas, precos)
+            await interaction.response.send_message(
+                "🛠️ Selecione os produtos que deseja encomendar:",
+                view=view,
+                ephemeral=True
+            )
             return
 
+        # Lógica para os botões de confirmação/cancelamento da encomenda final
         if custom_id in ["confirmar_encomenda", "cancelar_encomenda"]:
-
             message_id = interaction.message.id
             data = self.button_data.get(message_id)
-
             if not data:
                 return
 
             if custom_id == "confirmar_encomenda":
-                print(f"[INTERACTION] [{interaction.user.name}] Botão 'Confirmar' clicado...")
-
+                print(f"[INTERACTION] [{interaction.user.name}] Confirmou a encomenda.")
                 guild = self.bot.get_guild(ID_GUILD)
                 public_channel = guild.get_channel(ID_CANAL_PUBLICO)
 
                 name = data.get('name')
                 pombo = data.get('pombo')
-                produtos_list = data.get('produtos')
+                produtos_list = data.get('produtos', [])
                 prazo = data.get('prazo')
                 preco_min_str = data.get('venda')
 
                 receitas = self.api_data.get('receitas_crafting', {})
                 precos = self.api_data.get('precos', {})
 
-                # CÁLCULO DE MATERIAIS E CUSTO TOTAL
+                # Cálculos agregados
                 materiais_necessarios = calcular_materiais_para_lista(produtos_list, receitas)
                 custo_total = calcular_custo_de_materiais(materiais_necessarios, precos)
                 custo_materiais_str = f"$ {custo_total:.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-                # Formatação da lista de produtos para o embed
                 produtos_str = "\n".join([f"🔹 {p['name']}: {p['quantity']}" for p in produtos_list])
 
+                # Monta o embed público
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
                 public_embed.add_field(name='Pombo', value=f'```{pombo}```', inline=False)
                 public_embed.add_field(name='Produtos', value=f'```{produtos_str}```', inline=False)
-                public_embed.add_field(name='Prazo', value=f'```{prazo if str(prazo).lower().endswith(("dia","dias")) else str(prazo) + (" Dia" if str(prazo).strip() == "1" else " Dias")}```', inline=False)
-                public_embed.add_field(name='Valor mínimo de venda', value=f'```{preco_min_str}```', inline=True)
-                public_embed.add_field(name='Valor de Compra dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
+                public_embed.add_field(name='Prazo', value=f'```{prazo}```', inline=False)
+                public_embed.add_field(name='Valor Mínimo de Venda', value=f'```{preco_min_str}```', inline=True)
+                public_embed.add_field(name='Custo dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
                 public_embed.add_field(name='\u200B', value='', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
-                # Adiciona campo de materiais necessários
                 materiais_formatados_str = "\n".join(
                     [f"🔹 {item}: {math.ceil(quant)}" for item, quant in materiais_necessarios.items()]
                 )
-                public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
-                public_embed.add_field(name='\u200B', value='', inline=False)
-                
-                # GERAÇÃO E ADIÇÃO DOS BLOCOS DE RATEIO
-                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
+                if materiais_formatados_str:
+                    public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
+                    public_embed.add_field(name='\u200B', value='', inline=False)
 
-                for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]): # Limite de 25 campos no total
+                # Blocos de rateio
+                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
+                for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]):
                     if len(conteudo) > 1024:
                         partes = dividir_em_blocos(conteudo)
                         for j, parte in enumerate(partes):
@@ -306,17 +304,16 @@ class EncomendaCog(commands.Cog):
                 if len(blocos_rateio) > 23:
                     print("[WARNING] Rateio truncado por exceder limite de campos do embed.")
 
-
+                # Envio e finalização
                 pubic_message = await public_channel.send(embed=public_embed)
                 public_message_link = f"https://discord.com/channels/{ID_GUILD}/{ID_CANAL_PUBLICO}/{pubic_message.id}"
 
                 confirm_embed = discord.Embed(title='Encomenda Confirmada!', color=discord.Color.green())
-                confirm_embed.add_field(name='', value=f"[Clique aqui para ver os\n Detalhes da encomenda]({public_message_link})", inline=False)
+                confirm_embed.add_field(name='', value=f"✅ [Clique aqui para ver os detalhes]({public_message_link})")
                 await interaction.response.edit_message(embed=confirm_embed, view=None)
-                print(f"[INTERACTION] [{interaction.user.name}] Encomenda confirmada e publicada.")
+                print(f"[INTERACTION] [{interaction.user.name}] Encomenda publicada com sucesso.")
 
             elif custom_id == "cancelar_encomenda":
-                print(f"[INTERACTION] [{interaction.user.name}] Botão 'Cancelar' clicado...")
+                print(f"[INTERACTION] [{interaction.user.name}] Cancelou a encomenda.")
                 cancel_embed = discord.Embed(title='Encomenda Cancelada', color=discord.Color.red())
                 await interaction.response.edit_message(embed=cancel_embed, view=None)
-                print(f"[INTERACTION] [{interaction.user.name}] Encomenda cancelada.")
