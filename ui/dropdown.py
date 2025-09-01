@@ -30,17 +30,20 @@ class ProdutoDropdown(discord.ui.Select):
                     break
 
     async def callback(self, interaction: discord.Interaction):
-        # Silencioso: evita "interaction failed"
+        # Defer the interaction to avoid "interaction failed"
         await interaction.response.defer(ephemeral=True, thinking=False)
 
-        # Atualiza a seleção na view.
+        # Update the selection in the view's state
         self.view.selecoes[self.index] = self.values[0]
 
-        # Atualiza a mensagem para mostrar a nova seleção.
-        # Adiciona um bloco try-except para ignorar o erro se a mensagem for fechada.
+        # Rebuild the entire view to reflect the new state
+        self.view.build_view()
+
+        # Edit the original message with the updated view
         try:
             await interaction.message.edit(view=self.view)
         except discord.errors.NotFound:
+            # This can happen if the original message was deleted
             pass
 
 
