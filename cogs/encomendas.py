@@ -214,7 +214,7 @@ class EncomendaCog(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction: discord.Interaction):
         # Ignora interações que não são de componentes (botões, dropdowns)
-        if not interaction.is_component():
+        if interaction.type != discord.InteractionType.component:
             return
 
         custom_id = interaction.data.get('custom_id', '')
