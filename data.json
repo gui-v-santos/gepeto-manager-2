@@ -2,262 +2,177 @@
   "permission": [
     "1145130477326434324"
   ],
+  "settings": {
+    "craft-size": 400
+  },
   "precos": {
-    "ferraria": {
+    "madereira": {
       "min": {
-        "Seringa de Vidro": 1.1,
-        "Cápsula de Metal": 1.5,
-        "Lingote de Ferro": 2,
-        "Lingote de Platina": 2,
-        "Lingote de Ouro": 2,
-        "Lingote de Cobre": 2,
-        "Lingote de Aço Reforçado": 8,
-        "Faca de Esfolar": 10,
-        "Moedor": 1,
-        "Picareta": 1.6,
-        "Picareta Super Avançada": 12,
-        "Cutelo": 60,
-        "Pacote de Facas": 10,
-        "Caixa de Ferramenta": 4,
-        "Machadinha": 1.5,
-        "Faca de Arremesso": 100,
-        "Pá de Escavação": 40,
-        "Pá de Escavação Profissional": 15,
-        "Machete": 100,
-        "Martelo Importado": 45,
-        "Pregos": 0.8
+        "Madeira Cilíndrica": 1.00
       },
       "range": {
-        "Seringa de Vidro": { "min": 1.1, "max": 1.5 },
-        "Cápsula de Metal": { "min": 1.5, "max": 2 },
-        "Lingote de Ferro": { "min": 2, "max": 2.6 },
-        "Lingote de Platina": { "min": 2, "max": 2.6 },
-        "Lingote de Ouro": { "min": 2, "max": 2.6 },
-        "Lingote de Cobre": { "min": 2, "max": 2.6 },
-        "Lingote de Aço Reforçado": { "min": 8, "max": 10 },
-        "Faca de Esfolar": { "min": 10, "max": 14 },
-        "Moedor": { "min": 1, "max": 1.5 },
-        "Picareta": { "min": 1.6, "max": 2 },
-        "Picareta Super Avançada": { "min": 12, "max": 16 },
-        "Cutelo": { "min": 60, "max": 80 },
-        "Pacote de Facas": { "min": 10, "max": 14 },
-        "Caixa de Ferramenta": { "min": 4, "max": 5 },
-        "Machadinha": { "min": 1.5, "max": 2 },
-        "Faca de Arremesso": { "min": 100, "max": 135 },
-        "Pá de Escavação": { "min": 40, "max": 50 },
-        "Pá de Escavação Profissional": { "min": 15, "max": 20 },
-        "Machete": { "min": 100, "max": 200 },
-        "Martelo Importado": { "min": 45, "max": 60 },
-        "Pregos": { "min": 0.8, "max": 1.4 }
+        "Madeira Cilíndrica": {
+          "min": 1.00,
+          "max": 1.50
+        }
       }
     },
-    "comissao": { "min": 1, "max": 2 },
-    "mineradora": {
+    "ferraria": {
       "min": {
-        "Qualquer Minério": 0.4,
-        "Lascas de Platina": 1.8,
-        "Pacote de Minérios": 10
+        "Qualquer Minério": 0.40,
+        "Lascas de Platina": 1.80,
+        "Pacote de Minérios": 10.00
       },
       "range": {
-        "Qualquer Minério": { "min": 0.4, "max": 0.5 },
-        "Lascas de Platina": { "min": 1.8, "max": 2 },
-        "Pacote de Minérios": { "min": 10, "max": 12 }
+        "Qualquer Minério": { "min": 0.40, "max": 0.50 },
+        "Manganês": { "max": 0.35 },
+        "Lascas de Platina": { "min": 1.80, "max": 2.00 },
+        "Pacote de Minérios": { "min": 10.00, "max": 12.00 }
+      }
+    },
+    "comissao": {
+      "min": 1,
+      "max": 2
+    },
+    "mineradora": {
+      "min": {
+        "Pedra Sílica": 0.40,
+        "Minério de Cobre": 0.40,
+        "Quartzo": 0.40,
+        "Carvão": 0.40,
+        "Minério de Ouro": 0.40,
+        "Minério de Platina": 0.40,
+        "Minério de Ferro": 0.40,
+        "Minério de Enxofre": 0.40,
+        "Minério de Salitre": 0.40,
+        "Lascas de Platina": 1.80,
+        "Pacote de Minérios": 10.00
+      },
+      "range": {
+        "Pedra Sílica": { "min": 0.40, "max": 0.50 },
+        "Minério de Cobre": { "min": 0.40, "max": 0.50 },
+        "Quartzo": { "min": 0.40, "max": 0.50 },
+        "Carvão": { "min": 0.40, "max": 0.50 },
+        "Minério de Ouro": { "min": 0.40, "max": 0.50 },
+        "Minério de Platina": { "min": 0.40, "max": 0.50 },
+        "Minério de Ferro": { "min": 0.40, "max": 0.50 },
+        "Minério de Enxofre": { "min": 0.40, "max": 0.50 },
+        "Minério de Salitre": { "min": 0.40, "max": 0.50 },
+        "Lascas de Platina": { "min": 1.80, "max": 2.00 },
+        "Pacote de Minérios": { "min": 10.00, "max": 12.00 }
+      }
+    },
+
+    "fazenda": {
+      "min": {
+        "Cascalho": 1.40
+      },
+      "range": {
+        "Cascalho": { "min": 1.40, "max": 2.00 }
       }
     }
   },
   "receitas_crafting": {
-    "Cápsula de Metal": {
-      "produz": 10,
+    "Minério de Cobre": {
+      "produz": 64,
       "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 7 },
-        { "nome": "Carvão", "quantidade": 3 },
-        { "nome": "Lingote de Platina", "quantidade": 2 },
-        { "nome": "Lingote de Cobre", "quantidade": 2 }
-      ],
-      "tempo": 5
-    },
-    "Pregos": {
-      "produz": 20,
-      "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 2 },
-        { "nome": "Carvão", "quantidade": 2 }
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
       ],
       "tempo": 15
     },
-    "Picareta": {
+    "Carvão": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Pedra Sílica": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Minério de Ferro": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Minério de Ouro": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Minério de Salitre": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Minério de Platina": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Minério de Enxofre": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Quartzo": {
+      "produz": 64,
+      "materiais": [
+        { "nome": "Manganês Bruto", "quantidade": 3 },
+        { "nome": "Farelo de Minério", "quantidade": 8 }
+      ],
+      "tempo": 15
+    },
+    "Pacote de Minérios": {
       "produz": 6,
       "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 3 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 3 }
+        { "nome": "Pedra Sílica", "quantidade": 6 },
+        { "nome": "Minério de Cobre", "quantidade": 6 },
+        { "nome": "Quartzo", "quantidade": 6 },
+        { "nome": "Carvão", "quantidade": 6 },
+        { "nome": "Minério de Ouro", "quantidade": 6 },
+        { "nome": "Minério de Platina", "quantidade": 6 },
+        { "nome": "Minério de Ferro", "quantidade": 6 },
+        { "nome": "Minério de Enxofre", "quantidade": 6 },
+        { "nome": "Minério de Salitre", "quantidade": 6 }
       ],
       "tempo": 15
     },
-    "Machadinha": {
-      "produz": 6,
-      "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 6 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 3 }
-      ],
-      "tempo": 15
-    },
-    "Faca de Esfolar": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 1 },
-        { "nome": "Verniz", "quantidade": 10 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 1 }
-      ],
-      "tempo": 15
-    },
-    "Pacote de Facas": {
-      "produz": 4,
-      "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 2 },
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 5 }
-      ],
-      "tempo": 15
-    },
-    "Cutelo": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 6 },
-        { "nome": "Verniz", "quantidade": 10 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 6 }
-      ],
-      "tempo": 15
-    },
-    "Seringa de Vidro": {
-      "produz": 18,
-      "materiais": [
-        { "nome": "Álcool Artesanal", "quantidade": 3 },
-        { "nome": "Amido de Milho", "quantidade": 6 },
-        { "nome": "Pedra Sílica", "quantidade": 2 }
-      ],
-      "tempo": 15
-    },
-    "Caixa de Ferramenta": {
-      "produz": 12,
-      "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 6 },
-        { "nome": "Caixa Rústica", "quantidade": 3 }
-      ],
-      "tempo": 15
-    },
-    "Pá de Escavação": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 12 },
-        { "nome": "Madeira Bruta", "quantidade": 10 }
-      ],
-      "tempo": 15
-    },
-    "Moedor": {
+    "Farelo de Minério": {
       "produz": 24,
       "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 3 },
-        { "nome": "Lingote de Platina", "quantidade": 3 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 6 }
+        { "nome": "Cascalho", "quantidade": 3 },
+        { "nome": "Manganês Bruto", "quantidade": 12 }
       ],
       "tempo": 15
     },
-    "Pá de Escavação Profissional": {
-      "produz": 12,
+    "Lascas de Platina": {
+      "produz": 32,
       "materiais": [
-        { "nome": "Lingote de Ferro", "quantidade": 2 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Martelo Importado": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 1 },
-        { "nome": "Linha de Algodão", "quantidade": 6 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Machete": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 1 },
-        { "nome": "Linha de Algodão", "quantidade": 6 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Picareta Super Avançada": {
-      "produz": 3,
-      "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 6 },
-        { "nome": "Carvão", "quantidade": 4 },
-        { "nome": "Lingote de Ferro", "quantidade": 6 },
-        { "nome": "Picareta", "quantidade": 1 }
-      ],
-      "tempo": 15
-    },
-    "Faca de Arremesso": {
-      "produz": 1,
-      "materiais": [
-        { "nome": "Lingote de Aço Reforçado", "quantidade": 12 },
-        { "nome": "Verniz", "quantidade": 10 },
-        { "nome": "Madeira Cilíndrica", "quantidade": 6 }
-      ],
-      "tempo": 15
-    },
-    "Lingote de Cobre": {
-      "produz": 8,
-      "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 6 },
-        { "nome": "Carvão", "quantidade": 6 },
-        { "nome": "Minério de Cobre", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Lingote de Ouro": {
-      "produz": 8,
-      "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 6 },
-        { "nome": "Carvão", "quantidade": 6 },
-        { "nome": "Minério de Ouro", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Lingote de Ferro": {
-      "produz": 8,
-      "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 6 },
-        { "nome": "Carvão", "quantidade": 6 },
-        { "nome": "Minério de Ferro", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Lingote de Platina": {
-      "produz": 8,
-      "materiais": [
-        { "nome": "Madeira Bruta", "quantidade": 6 },
-        { "nome": "Carvão", "quantidade": 6 },
-        { "nome": "Minério de Platina", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Rubi Bruto": {
-      "produz": 6,
-      "materiais": [
-        { "nome": "Minério de Rubi", "quantidade": 12 },
-        { "nome": "Carvão", "quantidade": 20 },
-        { "nome": "Madeira Cúbica", "quantidade": 12 }
-      ],
-      "tempo": 15
-    },
-    "Lingote de Aço Reforçado": {
-      "produz": 8,
-      "materiais": [
-        { "nome": "Carvão", "quantidade": 6 },
-        { "nome": "Lingote de Ferro", "quantidade": 6 },
-        { "nome": "Lingote de Cobre", "quantidade": 6 },
-        { "nome": "Lingote de Ouro", "quantidade": 5 },
-        { "nome": "Lingote de Platina", "quantidade": 5 }
+        { "nome": "Manganês Bruto", "quantidade": 16 },
+        { "nome": "Minério de Platina", "quantidade": 32 }
       ],
       "tempo": 15
     }

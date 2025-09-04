@@ -65,7 +65,7 @@ class NewOrder(discord.ui.Modal):
 
         embed.add_field(name='🧑 Nome', value=f'```{self.name.value}```', inline=False)
         embed.add_field(name='🕊️ Pombo', value=f'```{self.pombo.value}```', inline=False)
-        embed.add_field(name='📦 Produtos e Quantidades', value=f'```{", ".join(produtos_str_list)}```', inline=False)
+        embed.add_field(name='📦 Produtos e Quantidades', value=f'```🔹 {"\n".join(produtos_str_list)}```', inline=False)
         embed.add_field(name='⏰ Prazo', value=f'```{self.prazo.value}```', inline=False)
         embed.add_field(name='💰 Custo Mínimo de Fabricação', value=f'```{preco_min_str}```', inline=False)
         embed.add_field(name='💵 Valor de Venda Mínimo', value=f'```{valor_venda_str}```', inline=False)
