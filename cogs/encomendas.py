@@ -14,7 +14,7 @@ ID_CANAL_PUBLICO = 1160775850334113852
 # ID do servidor (guild)
 ID_GUILD = 1145126424248848514
 
-def _formatar_bloco_individual(item, quantidade_desejada, receitas):
+def _formatar_bloco_individual(item, quantidade_desejada, receitas, craft_size):
     if item not in receitas:
         return ""
     receita = receitas[item]
@@ -22,7 +22,7 @@ def _formatar_bloco_individual(item, quantidade_desejada, receitas):
     ingredientes = receita['materiais']
     total_crafts = math.ceil(quantidade_desejada / produz_por_craft)
     soma_materiais_por_craft = sum(mat['quantidade'] for mat in ingredientes)
-    max_por_vez = math.floor(300 / soma_materiais_por_craft) if soma_materiais_por_craft > 0 else total_crafts
+    max_por_vez = math.floor(craft_size / soma_materiais_por_craft) if soma_materiais_por_craft > 0 else total_crafts
     if max_por_vez == 0: max_por_vez = 1
     repeticoes = total_crafts // max_por_vez
     resto = total_crafts % max_por_vez
@@ -79,7 +79,7 @@ def calcular_necessidades_intermediarios(produtos_list, receitas):
                 a_processar.append((material['nome'], material['quantidade'] * crafts_necessarios))
     return necessidades
 
-def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
+def gerar_blocos_de_rateio_para_lista(produtos_list, receitas, craft_size):
     all_craft_needs = calcular_necessidades_intermediarios(produtos_list, receitas)
     craft_order = []
     visited = set()
@@ -96,7 +96,7 @@ def gerar_blocos_de_rateio_para_lista(produtos_list, receitas):
     for item in craft_order:
         if item in all_craft_needs and all_craft_needs[item] > 0:
             total_a_produzir = math.ceil(all_craft_needs[item])
-            bloco_str = _formatar_bloco_individual(item, total_a_produzir, receitas)
+            bloco_str = _formatar_bloco_individual(item, total_a_produzir, receitas, craft_size)
             if bloco_str:
                 blocos_finais.append((f"➡️ {item.upper()}", bloco_str))
     return blocos_finais
@@ -170,7 +170,10 @@ class EncomendaCog(commands.Cog):
                 if 'Farelo de Minério' in necessidades_intermediarios:
                     materiais_para_exibir['Farelo de Minério'] = necessidades_intermediarios['Farelo de Minério']
 
-                # 3. Gerar o embed
+                # 3. Obter o craft_size das configurações
+                craft_size = self.api_data.get('settings', {}).get('craft-size', 300)
+
+                # 4. Gerar o embed
                 produtos_str = "\n".join([f"🔹 {p['name']}: {p['quantity']}" for p in produtos_list])
 
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
@@ -187,6 +190,8 @@ class EncomendaCog(commands.Cog):
                 if materiais_formatados_str:
                     public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
                     public_embed.add_field(name='\u200B', value='', inline=False)
+
+                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas, craft_size)
                 craft_size = self.api_data.get('settings', {}).get('craft-size', 300)
                 print(craft_size, " sizeeeeeeeeeeeeeeeeeeeeeeee")
                 blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
