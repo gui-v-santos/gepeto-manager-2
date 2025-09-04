@@ -193,8 +193,7 @@ class EncomendaCog(commands.Cog):
 
                 blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas, craft_size)
                 craft_size = self.api_data.get('settings', {}).get('craft-size', 300)
-                print(craft_size, " sizeeeeeeeeeeeeeeeeeeeeeeee")
-                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
+                blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas, craft_size)
 
                 for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]):
                     if len(conteudo) > 1024:
