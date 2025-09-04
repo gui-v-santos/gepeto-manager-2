@@ -176,18 +176,19 @@ class EncomendaCog(commands.Cog):
                 public_embed = discord.Embed(title='Nova Encomenda Confirmada!', color=discord.Color.green())
                 public_embed.add_field(name='Nome', value=f'```{name}```', inline=False)
                 public_embed.add_field(name='Pombo', value=f'```{pombo}```', inline=False)
-                public_embed.add_field(name='Produtos', value=f'```{produtos_str}```', inline=False)
                 public_embed.add_field(name='Prazo', value=f'```{prazo}```', inline=False)
                 public_embed.add_field(name='Valor Mínimo de Venda', value=f'```{preco_min_str}```', inline=True)
                 public_embed.add_field(name='Custo dos Materiais', value=f'```{custo_materiais_str}```', inline=True)
                 public_embed.add_field(name='\u200B', value='', inline=False)
                 public_embed.set_footer(text=f'Encomenda criada por {interaction.user.name}', icon_url=interaction.user.display_avatar.url)
 
+                public_embed.add_field(name='Produtos', value=f'```{produtos_str}```', inline=False)
                 materiais_formatados_str = "\n".join([f"🔹 {item}: {math.ceil(quant)}" for item, quant in sorted(materiais_para_exibir.items())])
                 if materiais_formatados_str:
                     public_embed.add_field(name='Materiais Necessários (Total)', value=f"```{materiais_formatados_str}```", inline=False)
                     public_embed.add_field(name='\u200B', value='', inline=False)
-
+                craft_size = self.api_data.get('settings', {}).get('craft-size', 300)
+                print(craft_size, " sizeeeeeeeeeeeeeeeeeeeeeeee")
                 blocos_rateio = gerar_blocos_de_rateio_para_lista(produtos_list, receitas)
 
                 for i, (titulo, conteudo) in enumerate(blocos_rateio[:23]):
